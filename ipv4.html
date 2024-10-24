@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Calcolatore di Classe IP</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f5f5f5;
+      text-align: center;
+      padding: 50px;
+    }
+    .calculator-box {
+      background-color: #fff;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+      max-width: 500px;
+      margin: 0 auto;
+    }
+    input[type="text"], select {
+      width: 80%;
+      padding: 10px;
+      margin: 10px 0;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+    }
+    button {
+      padding: 10px 20px;
+      background-color: #28a745;
+      color: #fff;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #218838;
+    }
+    .result, .explanation {
+      margin-top: 15px;
+      font-weight: bold;
+    }
+    .explanation {
+      color: #555;
+      text-align: left;
+      margin-top: 20px;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Calcolatore Classe IP</h1>
+
+  <div class="calculator-box">
+    <h3>Inserisci un indirizzo IP o <button onclick="generateRandomIP()">Genera IP Casuale</button>:</h3>
+    <input type="text" id="ipAddress" placeholder="Es. 192.168.1.1">
+
+    <h3>Seleziona la classe IP che pensi sia corretta:</h3>
+    <select id="ipClassSelect">
+      <option value="">-- Seleziona una classe --</option>
+      <option value="A">Classe A</option>
+      <option value="B">Classe B</option>
+      <option value="C">Classe C</option>
+      <option value="D">Classe D (Multicast)</option>
+      <option value="E">Classe E (Sperimentale)</option>
+    </select>
+    
+    <button onclick="calculateClass()">Verifica</button>
+    <p id="result" class="result"></p>
+    <div id="explanation" class="explanation"></div>
+  </div>
+
+  <script>
+    function generateRandomIP() {
+      const randomIP = `${Math.floor(Math.random() * 223) + 1}.${Math.floor(Math.random() * 256)}.${Math.floor(Math.random() * 256)}.${Math.floor(Math.random() * 256)}`;
+      document.getElementById('ipAddress').value = randomIP;
+    }
+
+    function calculateClass() {
+      const ipAddress = document.getElementById('ipAddress').value;
+      const selectedClass = document.getElementById('ipClassSelect').value;
+      const result = document.getElementById('result');
+      const explanation = document.getElementById('explanation');
+      
+      // Validazione di base dell'indirizzo IP
+      const ipParts = ipAddress.split('.');
+      if (ipParts.length !== 4 || ipParts.some(part => isNaN(part) || part < 0 || part > 255)) {
+        result.innerHTML = "Indirizzo IP non valido!";
+        result.style.color = "red";
+        explanation.innerHTML = "";
+        return;
+      }
+
+      // Converte il primo ottetto in numero intero
+      const firstOctet = parseInt(ipParts[0]);
+
+      // Determina la classe dell'indirizzo IP
+      let ipClass = '';
+      let isSpecial = false;
+      if (firstOctet >= 1 && firstOctet <= 126) {
+        ipClass = 'A';
+      } else if (firstOctet >= 128 && firstOctet <= 191) {
+        ipClass = 'B';
+      } else if (firstOctet >= 192 && firstOctet <= 223) {
+        ipClass = 'C';
+      } else if (firstOctet >= 224 && firstOctet <= 239) {
+        ipClass = 'D';
+      } else if (firstOctet >= 240 && firstOctet <= 255) {
+        ipClass = 'E';
+      } else if (ipAddress === '127.0.0.1') {
+        ipClass = 'Loopback (localhost)';
+        isSpecial = true;
+      } else if (ipAddress === '0.0.0.0') {
+        ipClass = 'Indirizzo di default (0.0.0.0)';
+        isSpecial = true;
+      } else if (ipAddress === '255.255.255.255') {
+        ipClass = 'Indirizzo broadcast globale';
+        isSpecial = true;
+      }
+
+      if (isSpecial) {
+        result.innerHTML = `L'indirizzo IP ${ipAddress} è uno <strong>speciale</strong>: ${ipClass}.`;
+        result.style.color = "blue";
+        explanation.innerHTML = "";
+        return;
+      }
+
+      // Verifica se la classe selezionata dall'utente è corretta
+      if (selectedClass === ipClass) {
+        result.innerHTML = `Corretto! L'indirizzo IP ${ipAddress} è di <strong>Classe ${ipClass}</strong>.`;
+        result.style.color = "green";
+      } else {
+        result.innerHTML = `Sbagliato! L'indirizzo IP ${ipAddress} è di <strong>Classe ${ipClass}</strong>, non ${selectedClass}.`;
+        result.style.color = "red";
+      }
+
+      // Calcolo dell'indirizzo di rete e di broadcast
+      let networkAddress = "";
+      let broadcastAddress = "";
+      if (ipClass === 'A') {
+        networkAddress = `${ipParts[0]}.0.0.0`;
+        broadcastAddress = `${ipParts[0]}.255.255.255`;
+      } else if (ipClass === 'B') {
+        networkAddress = `${ipParts[0]}.${ipParts[1]}.0.0`;
+        broadcastAddress = `${ipParts[0]}.${ipParts[1]}.255.255`;
+      } else if (ipClass === 'C') {
+        networkAddress = `${ipParts[0]}.${ipParts[1]}.${ipParts[2]}.0`;
+        broadcastAddress = `${ipParts[0]}.${ipParts[1]}.${ipParts[2]}.255`;
+      }
+
+      // Spiega passo per passo il calcolo della classe
+      let explanationText = `<strong>Passi per determinare la classe dell'indirizzo IP:</strong><br><br>`;
+      explanationText += `1. Il primo ottetto dell'indirizzo IP è: <strong>${firstOctet}</strong>.<br>`;
+      
+      if (ipClass === 'A') {
+        explanationText += `2. Gli indirizzi IP di <strong>Classe A</strong> hanno il primo ottetto compreso tra 1 e 126.<br>`;
+        explanationText += `3. L'indirizzo di rete è <strong>${networkAddress}</strong> e l'indirizzo broadcast è <strong>${broadcastAddress}</strong>.`;
+      } else if (ipClass === 'B') {
+        explanationText += `2. Gli indirizzi IP di <strong>Classe B</strong> hanno il primo ottetto compreso tra 128 e 191.<br>`;
+        explanationText += `3. L'indirizzo di rete è <strong>${networkAddress}</strong> e l'indirizzo broadcast è <strong>${broadcastAddress}</strong>.`;
+      } else if (ipClass === 'C') {
+        explanationText += `2. Gli indirizzi IP di <strong>Classe C</strong> hanno il primo ottetto compreso tra 192 e 223.<br>`;
+        explanationText += `3. L'indirizzo di rete è <strong>${networkAddress}</strong> e l'indirizzo broadcast è <strong>${broadcastAddress}</strong>.`;
+      }
+
+      explanation.innerHTML = explanationText;
+    }
+  </script>
+
+</body>
+</html>
