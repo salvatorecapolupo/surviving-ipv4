@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calcolatore IP e Subnet</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            background: #fff;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            max-width: 600px;
+            margin: auto;
+        }
+        h1, h2 {
+            color: #333;
+        }
+        input, select, button {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        button {
+            background-color: #28a745;
+            color: white;
+            border: none;
+        }
+        button:hover {
+            background-color: #218838;
+        }
+        #results {
+            margin-top: 20px;
+            padding: 15px;
+            background: #e9ecef;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Calcolatore IP e Subnet</h1>
+
+        <!-- Fase Base -->
+        <h2>Fase Base: Determinare la Classe IP e Bit per le Sottoreti</h2>
+        <label for="subnetCount">Numero di Sottoreti (5-50):</label>
+        <input type="number" id="subnetCount" min="5" max="50" placeholder="Inserisci il numero di sottoreti">
+
+        <label for="ipInput">Inserisci o genera un indirizzo IP:</label>
+        <input type="text" id="ipInput" placeholder="X.X.X.X">
+
+        <button onclick="generateIP()">Genera IP Casual</button>
+        <button onclick="calculateSubnet()">Calcola Classe e Bit</button>
+
+        <div id="results"></div>
+
+        <!-- Fase Intermedia -->
+        <h2>Fase Intermedia: Determinare l'Indirizzo di Rete</h2>
+        <label for="ipNetwork">Indirizzo IP (X.Y.Z.K):</label>
+        <input type="text" id="ipNetwork" placeholder="X.Y.Z.K" />
+
+        <label for="subnets">Numero di Sottoreti (P):</label>
+        <input type="number" id="subnets" min="1" placeholder="Inserisci il numero di sottoreti (P)" />
+
+        <button onclick="calculateNetworkAddress()">Calcola Indirizzo di Rete</button>
+
+        <div id="networkResults"></div>
+    </div>
+
+    <script>
+        function generateIP() {
+            const randomIP = `${Math.floor(Math.random() * 256)}.${Math.floor(Math.random() * 256)}.${Math.floor(Math.random() * 256)}.${Math.floor(Math.random() * 256)}`;
+            document.getElementById("ipInput").value = randomIP;
+        }
+
+        function calculateSubnet() {
+            const subnetCount = parseInt(document.getElementById("subnetCount").value);
+            const ip = document.getElementById("ipInput").value;
+
+            const ipParts = ip.split('.');
+            if (ipParts.length !== 4) {
+                document.getElementById("results").innerHTML = "Inserisci un indirizzo IP valido.";
+                return;
+            }
+
+            const firstOctet = parseInt(ipParts[0]);
+
+            let classType;
+            if (firstOctet >= 0 && firstOctet <= 127) {
+                classType = 'A';
+            } else if (firstOctet >= 128 && firstOctet <= 191) {
+                classType = 'B';
+            } else if (firstOctet >= 192 && firstOctet <= 223) {
+                classType = 'C';
+            } else {
+                classType = 'Non valido';
+            }
+
+            const neededBitsForSubnets = Math.ceil(Math.log2(subnetCount));
+            const totalBits = (classType === 'A') ? 8 : (classType === 'B') ? 16 : 24;
+
+            document.getElementById("results").innerHTML = `
+                <p>Classe IP: ${classType}</p>
+                <p>Bit necessari per le sottoreti: ${neededBitsForSubnets}</p>
+                <p>Totale bit per rete: ${totalBits + neededBitsForSubnets}</p>
+            `;
+        }
+
+        function calculateNetworkAddress() {
+            const ip = document.getElementById("ipNetwork").value;
+            const subnets = parseInt(document.getElementById("subnets").value);
+
+            const ipParts = ip.split('.');
+            if (ipParts.length !== 4) {
+                document.getElementById("networkResults").innerHTML = "Inserisci un indirizzo IP valido.";
+                return;
+            }
+
+            const firstOctet = parseInt(ipParts[0]);
+
+            // Determina la classe
+            let classType, subnetMask;
+            if (firstOctet >= 0 && firstOctet <= 127) {
+                classType = 'A';
+                subnetMask = '255.0.0.0';
+            } else if (firstOctet >= 128 && firstOctet <= 191) {
+                classType = 'B';
+                subnetMask = '255.255.0.0';
+            } else if (firstOctet >= 192 && firstOctet <= 223) {
+                classType = 'C';
+                subnetMask = '255.255.255.0';
+            } else {
+                document.getElementById("networkResults").innerHTML = "Indirizzo IP non valido.";
+                return;
+            }
+
+            // Calcolo dell'indirizzo di rete
+            const subnetBits = Math.ceil(Math.log2(subnets));
+            const totalBits = (classType === 'A') ? 8 : (classType === 'B') ? 16 : 24;
+            const netAddress = ipParts.map((part, index) => {
+                if (index < totalBits / 8) {
+                    return part; // Mantieni il valore originale per i bit di rete
+                } else {
+                    return '0'; // Gli host ID vengono azzerati
+                }
+            });
+
+            document.getElementById("networkResults").innerHTML = `
+                <p>Classe IP: ${classType}</p>
+                <p>Subnet Mask: ${subnetMask}</p>
+                <p>Indirizzo di rete: ${netAddress.join('.')}</p>
+            `;
+        }
+    </script>
+</body>
+</html>
