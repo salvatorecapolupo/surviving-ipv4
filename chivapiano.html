@@ -71,16 +71,28 @@
     function calcolaAvanzate(){
       const net = parseIP(document.getElementById('ip-adv').value);
       const m = parseMask(document.getElementById('mask-adv').value);
-      if(!net||!m) return document.getElementById('risultato-adv').textContent='Input non valido';
+      if(!net||!m) {
+        document.getElementById('risultato-adv').textContent='Input non valido'; return;
+      }
+      // calcola default bits per classe
+      const firstOct = net[0];
+      let defBits;
+      if(firstOct < 128) defBits = 8;
+      else if(firstOct < 192) defBits = 16;
+      else defBits = 24;
+      const numSubnet = m.bits > defBits ? 2 ** (m.bits - defBits) : 1;
+
       const netI= ipToInt(net);
       const maskI= ipToInt(m.mask);
       const broadcast = netI | (~maskI>>>0);
-      const firstHost = netI +1;
-      const lastHost = broadcast -1;
-      const hostUtili = (m.bits===32)?0: Math.max(0, (2**(32-m.bits)) -2);
+      const firstHost = m.bits===32 ? netI : netI+1;
+      const lastHost = m.bits===32 ? netI : broadcast-1;
+      const hostUtili = m.bits>=31 ? 0 : (2**(32-m.bits))-2;
+
       document.getElementById('risultato-adv').textContent =
         `Indirizzo di rete: ${intToIp(netI)}`+"\n"+
         `Maschera: /${m.bits} (${m.mask.join('.')})`+"\n"+
+        `Numero di sottoreti: ${numSubnet}`+"\n"+
         `Broadcast: ${intToIp(broadcast)}`+"\n"+
         `Primo host: ${intToIp(firstHost)}`+"\n"+
         `Ultimo host: ${intToIp(lastHost)}`+"\n"+
