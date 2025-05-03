@@ -3,63 +3,69 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Tool IPv4 Unificato</title>
+  <title>Surviving IPv4</title>
   <style>
     body {
-      font-family: Arial, sans-serif;
+      font-family: 'Segoe UI', sans-serif;
       margin: 0;
       padding: 2rem;
-      background: #f4f4f4;
+      background: linear-gradient(135deg, #e3f2fd, #fff);
     }
 
     h1, h2 {
       text-align: center;
-      color: #333;
+      color: #0d47a1;
     }
 
     .container {
-      max-width: 800px;
+      max-width: 900px;
       margin: auto;
-      background: #fff;
+      background: #ffffffcc;
       padding: 2rem;
-      border-radius: 8px;
-      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+      border-radius: 12px;
+      box-shadow: 0 0 15px rgba(0,0,0,0.1);
     }
 
     .section {
-      margin-bottom: 2rem;
+      margin-bottom: 2.5rem;
     }
 
     label {
       display: block;
-      margin-bottom: 0.5rem;
-      font-weight: bold;
+      margin-bottom: 0.4rem;
+      font-weight: 600;
+      color: #333;
     }
 
     input, select, button {
       width: 100%;
-      padding: 0.5rem;
+      padding: 0.6rem;
       margin-bottom: 1rem;
       border: 1px solid #ccc;
-      border-radius: 4px;
+      border-radius: 6px;
       font-size: 1rem;
+      box-sizing: border-box;
     }
 
     button {
-      background-color: #007bff;
+      background-color: #1976d2;
       color: white;
+      font-weight: bold;
       cursor: pointer;
+      transition: background-color 0.3s;
     }
 
     button:hover {
-      background-color: #0056b3;
+      background-color: #0d47a1;
     }
 
     .result {
-      background: #eef;
+      background: #e8f0fe;
       padding: 1rem;
-      border-radius: 4px;
+      border-left: 4px solid #2196f3;
+      border-radius: 6px;
       white-space: pre-wrap;
+      font-family: monospace;
     }
 
     .footer {
@@ -68,17 +74,26 @@
       font-size: 0.9rem;
       color: #666;
     }
+
+    .row {
+      display: flex;
+      gap: 1rem;
+    }
+
+    .row > div {
+      flex: 1;
+    }
   </style>
 </head>
 <body>
   <div class="container">
-    <h1>Tool Unificato IPv4</h1>
+    <h1>🌐 Tool Unificato IPv4</h1>
 
     <div class="section">
       <h2>1️⃣ Calcolo Classe IP</h2>
-      <label for="ipClass">Inserisci un IP:</label>
+      <label for="ipClass">Indirizzo IP:</label>
       <input type="text" id="ipClass" placeholder="es. 192.168.1.1" />
-      <button onclick="generateRandomIP()">🎲 IP Casuale</button>
+      <button onclick="generateRandomIP()">🎲 Genera IP Casuale</button>
       <button onclick="detectClass()">📡 Verifica Classe</button>
       <div class="result" id="classResult"></div>
     </div>
@@ -88,22 +103,46 @@
       <label for="ipSubnet">Indirizzo IP:</label>
       <input type="text" id="ipSubnet" placeholder="es. 192.168.1.1" />
 
-      <label for="maskSubnet">Maschera CIDR (es. /24):</label>
-      <input type="text" id="maskSubnet" placeholder="/24 o 255.255.255.0" />
+      <label for="maskSubnet">Maschera CIDR (seleziona o scrivi):</label>
+      <input list="cidrList" id="maskSubnet" placeholder="/24 o 255.255.255.0" />
+      <datalist id="cidrList">
+        <option value="/8">
+        <option value="/16">
+        <option value="/24">
+        <option value="/25">
+        <option value="/30">
+      </datalist>
 
-      <button onclick="calculateSubnet()">🧮 Calcola</button>
+      <button onclick="calculateSubnet()">🧮 Calcola Subnet</button>
       <div class="result" id="subnetResult"></div>
+    </div>
+
+    <div class="section">
+      <h2>3️⃣ Progetta una Rete</h2>
+      <div class="row">
+        <div>
+          <label for="numSubnets">Numero di Subnet (N):</label>
+          <input type="number" id="numSubnets" placeholder="es. 4" />
+        </div>
+        <div>
+          <label for="hostsPerSubnet">Host per Subnet (K):</label>
+          <input type="number" id="hostsPerSubnet" placeholder="es. 30" />
+        </div>
+      </div>
+      <button onclick="designNetwork()">📐 Calcola CIDR ideale</button>
+      <div class="result" id="designResult"></div>
     </div>
   </div>
 
   <div class="footer">
-    Tool sviluppato per IPv4 – Tutti i diritti riservati © 2025
+    ✨ Creato con cura – IPv4 Tool © 2025
   </div>
 
   <script>
     function generateRandomIP() {
       const ip = Array(4).fill().map(() => Math.floor(Math.random() * 256)).join('.');
       document.getElementById('ipClass').value = ip;
+      document.getElementById('ipSubnet').value = ip;
     }
 
     function detectClass() {
@@ -126,7 +165,7 @@
     }
 
     function ipToBinary(ip) {
-      return ip.split('.').map(octet => parseInt(octet).toString(2).padStart(8, '0')).join('');
+      return ip.split('.').map(o => parseInt(o).toString(2).padStart(8, '0')).join('');
     }
 
     function binaryToIP(bin) {
@@ -191,6 +230,30 @@
         `Primo host: ${firstHost}\n` +
         `Ultimo host: ${lastHost}\n` +
         `Host disponibili: ${hosts}`;
+    }
+
+    function designNetwork() {
+      const n = parseInt(document.getElementById('numSubnets').value);
+      const k = parseInt(document.getElementById('hostsPerSubnet').value);
+      let result = '';
+
+      if (isNaN(n) || isNaN(k) || n <= 0 || k <= 0) {
+        document.getElementById('designResult').textContent = '❌ Inserisci valori validi.';
+        return;
+      }
+
+      const totalHosts = n * (k + 2);
+      const bitsNeeded = Math.ceil(Math.log2(k + 2));
+      const cidr = 32 - bitsNeeded;
+      const maxSubnets = 2 ** (32 - cidr);
+
+      result = 
+        `📐 Per ${n} subnet da ${k} host:\n` +
+        `CIDR consigliato: /${cidr}\n` +
+        `Host per subnet: ${2 ** (32 - cidr) - 2}\n` +
+        `Massime subnet disponibili: ${Math.floor(maxSubnets / (2 ** bitsNeeded))}`;
+
+      document.getElementById('designResult').textContent = result;
     }
   </script>
 </body>
