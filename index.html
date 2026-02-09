@@ -1,260 +1,336 @@
 <!DOCTYPE html>
 <html lang="it">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Surviving IPv4 - Tool per subnet mask, IP, dimensionamento rete</title>
-  <style>
-    body {
-      font-family: 'Segoe UI', sans-serif;
-      margin: 0;
-      padding: 2rem;
-      background: linear-gradient(135deg, #e3f2fd, #fff);
-    }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IP Subnet Calculator - Classic Style</title>
+    <style>
+        body {
+            font-family: Arial, Helvetica, sans-serif;
+            background-color: #f0f0f0;
+            margin: 20px;
+            color: #333;
+        }
 
-    h1, h2 {
-      text-align: center;
-      color: #0d47a1;
-    }
+        .container {
+            max-width: 700px;
+            margin: 0 auto;
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
 
-    .container {
-      max-width: 900px;
-      margin: auto;
-      background: #ffffffcc;
-      padding: 2rem;
-      border-radius: 12px;
-      box-shadow: 0 0 15px rgba(0,0,0,0.1);
-    }
+        h1 {
+            color: #006633;
+            font-size: 24px;
+            margin-bottom: 20px;
+            border-bottom: 1px solid #ccc;
+            padding-bottom: 10px;
+        }
 
-    .section {
-      margin-bottom: 2.5rem;
-    }
+        /* Form Style similar to calculator.net */
+        .calc-form {
+            background-color: #eeeeee;
+            padding: 15px;
+            border-radius: 5px;
+            border: 1px solid #ddd;
+            margin-bottom: 20px;
+        }
 
-    label {
-      display: block;
-      margin-bottom: 0.4rem;
-      font-weight: 600;
-      color: #333;
-    }
+        .form-row {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+            flex-wrap: wrap;
+        }
 
-    input, select, button {
-      width: 100%;
-      padding: 0.6rem;
-      margin-bottom: 1rem;
-      border: 1px solid #ccc;
-      border-radius: 6px;
-      font-size: 1rem;
-      box-sizing: border-box;
-    }
+        .form-label {
+            width: 150px;
+            font-weight: bold;
+            font-size: 14px;
+        }
 
-    button {
-      background-color: #1976d2;
-      color: white;
-      font-weight: bold;
-      cursor: pointer;
-      transition: background-color 0.3s;
-    }
+        input[type="text"] {
+            padding: 5px;
+            border: 1px solid #ccc;
+            border-radius: 3px;
+            width: 200px;
+            font-size: 14px;
+        }
 
-    button:hover {
-      background-color: #0d47a1;
-    }
+        select {
+            padding: 5px;
+            border: 1px solid #ccc;
+            border-radius: 3px;
+            font-size: 14px;
+            background: white;
+        }
 
-    .result {
-      background: #e8f0fe;
-      padding: 1rem;
-      border-left: 4px solid #2196f3;
-      border-radius: 6px;
-      white-space: pre-wrap;
-      font-family: monospace;
-    }
+        .btn-calc {
+            background-color: #006633;
+            color: white;
+            border: none;
+            padding: 8px 20px;
+            font-size: 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
 
-    .footer {
-      text-align: center;
-      margin-top: 3rem;
-      font-size: 0.9rem;
-      color: #666;
-    }
+        .btn-calc:hover {
+            background-color: #004d26;
+        }
 
-    .row {
-      display: flex;
-      gap: 1rem;
-    }
+        .btn-clear {
+            background-color: #888;
+            color: white;
+            border: none;
+            padding: 8px 20px;
+            font-size: 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-top: 10px;
+            margin-left: 10px;
+            text-decoration: none;
+            display: inline-block;
+        }
 
-    .row > div {
-      flex: 1;
-    }
-  </style>
+        /* Results Table Style */
+        table.results {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            font-size: 14px;
+        }
+
+        table.results th, table.results td {
+            border: 1px solid #ccc;
+            padding: 8px;
+            text-align: left;
+        }
+
+        table.results th {
+            background-color: #f9f9f9;
+            width: 30%;
+            font-weight: bold;
+        }
+
+        .binary {
+            font-family: monospace;
+            color: #666;
+            font-size: 13px;
+        }
+
+        .highlight {
+            color: #006633;
+            font-weight: bold;
+        }
+
+        .error {
+            color: red;
+            font-weight: bold;
+            display: none;
+            margin-top: 10px;
+        }
+    </style>
 </head>
 <body>
-  <div class="container">
-    <h1>🌐 Tool Unificato IPv4</h1>
-    <p> Surviving IPv4 - Tool per subnet mask, IP, dimensionamento rete. </p>
-    <div class="section">
-      <h2>1️⃣ Calcolo Classe IP</h2>
-      <label for="ipClass">Indirizzo IP:</label>
-      <input type="text" id="ipClass" placeholder="es. 192.168.1.1" />
-      <button onclick="generateRandomIP()">🎲 Genera IP Casuale</button>
-      <button onclick="detectClass()">📡 Verifica Classe</button>
-      <div class="result" id="classResult"></div>
-    </div>
 
-    <div class="section">
-      <h2>2️⃣ Calcolo Dettagli Subnetting</h2>
-      <label for="ipSubnet">Indirizzo IP:</label>
-      <input type="text" id="ipSubnet" placeholder="es. 192.168.1.1" />
+<div class="container">
+    <h1>IP Subnet Calculator</h1>
 
-      <label for="maskSubnet">Maschera CIDR (seleziona o scrivi):</label>
-      <input list="cidrList" id="maskSubnet" placeholder="/24 o 255.255.255.0" />
-      <datalist id="cidrList">
-        <option value="/8">
-        <option value="/16">
-        <option value="/24">
-        <option value="/25">
-        <option value="/30">
-      </datalist>
-
-      <button onclick="calculateSubnet()">🧮 Calcola Subnet</button>
-      <div class="result" id="subnetResult"></div>
-    </div>
-
-    <div class="section">
-      <h2>3️⃣ Progetta una Rete</h2>
-      <div class="row">
-        <div>
-          <label for="numSubnets">Numero di Subnet (N):</label>
-          <input type="number" id="numSubnets" placeholder="es. 4" />
+    <div class="calc-form">
+        <div class="form-row">
+            <span class="form-label">Indirizzo IP:</span>
+            <input type="text" id="ip_address" value="10.100.0.0" placeholder="es. 192.168.1.1">
         </div>
-        <div>
-          <label for="hostsPerSubnet">Host per Subnet (K):</label>
-          <input type="number" id="hostsPerSubnet" placeholder="es. 30" />
+        
+        <div class="form-row">
+            <span class="form-label">Subnet Mask:</span>
+            <select id="cidr">
+                </select>
         </div>
-      </div>
-      <button onclick="designNetwork()">📐 Calcola CIDR ideale</button>
-      <div class="result" id="designResult"></div>
+
+        <div class="form-row">
+            <span class="form-label"></span>
+            <button class="btn-calc" onclick="calculate()">Calcola</button>
+            <button class="btn-clear" onclick="resetForm()">Pulisci</button>
+        </div>
+        <div id="error-msg" class="error">Inserisci un indirizzo IP valido.</div>
     </div>
-  </div>
 
-  <div class="footer">
-    ✨ Creato con cura – IPv4 Tool © 2025
-  </div>
+    <div id="result-container" style="display: block;">
+        <h3>Risultati</h3>
+        <table class="results">
+            <tr>
+                <th>Indirizzo IP</th>
+                <td id="res-ip">10.100.0.0</td>
+            </tr>
+            <tr>
+                <th>Maschera di Sottorete</th>
+                <td>
+                    <span id="res-mask">255.255.0.0</span>
+                    <br><span class="binary" id="res-mask-bin">11111111.11111111.00000000.00000000</span>
+                </td>
+            </tr>
+            <tr>
+                <th>Indirizzo di Rete</th>
+                <td>
+                    <span id="res-net" class="highlight">10.100.0.0</span>
+                    <br><span class="binary" id="res-net-bin">00001010.01100100.00000000.00000000</span>
+                </td>
+            </tr>
+            <tr>
+                <th>Range Host Utilizzabili</th>
+                <td id="res-range">10.100.0.1 - 10.100.255.254</td>
+            </tr>
+            <tr>
+                <th>Indirizzo di Broadcast</th>
+                <td>
+                    <span id="res-bcast">10.100.255.255</span>
+                    <br><span class="binary" id="res-bcast-bin">00001010.01100100.11111111.11111111</span>
+                </td>
+            </tr>
+            <tr>
+                <th>Totale Host</th>
+                <td id="res-total">65536</td>
+            </tr>
+            <tr>
+                <th>Host Utilizzabili</th>
+                <td id="res-usable" class="highlight">65534</td>
+            </tr>
+            <tr>
+                <th>Wildcard Mask</th>
+                <td id="res-wild">0.0.255.255</td>
+            </tr>
+            <tr>
+                <th>Notazione CIDR</th>
+                <td id="res-cidr">/16</td>
+            </tr>
+            <tr>
+                <th>Tipo di IP</th>
+                <td id="res-class">Private (Class A)</td>
+            </tr>
+        </table>
+    </div>
+</div>
 
-  <script>
-    function generateRandomIP() {
-      const ip = Array(4).fill().map(() => Math.floor(Math.random() * 256)).join('.');
-      document.getElementById('ipClass').value = ip;
-      document.getElementById('ipSubnet').value = ip;
+<script>
+    // Popola il menu a tendina CIDR
+    const cidrSelect = document.getElementById('cidr');
+    for (let i = 32; i >= 1; i--) {
+        let maskLong = -1 << (32 - i);
+        let maskStr = longToIp(maskLong);
+        let option = document.createElement('option');
+        option.value = i;
+        option.text = `/${i} - ${maskStr}`;
+        if (i === 16) option.selected = true; // Default /16 come da traccia 
+        cidrSelect.appendChild(option);
     }
 
-    function detectClass() {
-      const ip = document.getElementById('ipClass').value.trim();
-      const firstOctet = parseInt(ip.split('.')[0]);
-      let classe = 'Indeterminata';
+    function calculate() {
+        const ipInput = document.getElementById('ip_address').value.trim();
+        const cidr = parseInt(document.getElementById('cidr').value);
+        const errorMsg = document.getElementById('error-msg');
 
-      if (isNaN(firstOctet)) {
-        document.getElementById('classResult').textContent = '❌ IP non valido.';
-        return;
-      }
-
-      if (firstOctet >= 1 && firstOctet <= 126) classe = 'Classe A';
-      else if (firstOctet >= 128 && firstOctet <= 191) classe = 'Classe B';
-      else if (firstOctet >= 192 && firstOctet <= 223) classe = 'Classe C';
-      else if (firstOctet >= 224 && firstOctet <= 239) classe = 'Classe D (Multicast)';
-      else if (firstOctet >= 240 && firstOctet <= 254) classe = 'Classe E (Riservata)';
-
-      document.getElementById('classResult').textContent = `✅ ${ip} appartiene alla ${classe}`;
-    }
-
-    function ipToBinary(ip) {
-      return ip.split('.').map(o => parseInt(o).toString(2).padStart(8, '0')).join('');
-    }
-
-    function binaryToIP(bin) {
-      return bin.match(/.{1,8}/g).map(b => parseInt(b, 2)).join('.');
-    }
-
-    function cidrToMask(cidr) {
-      const bits = parseInt(cidr.replace('/', ''));
-      return Array(4).fill().map((_, i) => {
-        const len = Math.min(8, bits - i * 8);
-        return len > 0 ? parseInt('1'.repeat(len).padEnd(8, '0'), 2) : 0;
-      }).join('.');
-    }
-
-    function calculateSubnet() {
-      let ip = document.getElementById('ipSubnet').value.trim();
-      let maskInput = document.getElementById('maskSubnet').value.trim();
-
-      if (!ip.match(/^(\d{1,3}\.){3}\d{1,3}$/)) {
-        document.getElementById('subnetResult').textContent = '❌ IP non valido.';
-        return;
-      }
-
-      let cidr = 0;
-      if (maskInput.startsWith('/')) {
-        cidr = parseInt(maskInput.slice(1));
-        if (cidr < 1 || cidr > 32) {
-          document.getElementById('subnetResult').textContent = '❌ CIDR non valido.';
-          return;
+        if (!validateIp(ipInput)) {
+            errorMsg.style.display = 'block';
+            return;
         }
-      } else {
-        const parts = maskInput.split('.').map(Number);
-        if (parts.length !== 4 || parts.some(n => isNaN(n))) {
-          document.getElementById('subnetResult').textContent = '❌ Maschera non valida.';
-          return;
+        errorMsg.style.display = 'none';
+
+        // Calcoli Core
+        const ipLong = ipToLong(ipInput);
+        const maskLong = -1 << (32 - cidr);
+        const networkLong = (ipLong & maskLong) >>> 0;
+        const wildcardLong = (~maskLong) >>> 0;
+        const broadcastLong = (networkLong | wildcardLong) >>> 0;
+        
+        const usableStartLong = (networkLong + 1) >>> 0;
+        const usableEndLong = (broadcastLong - 1) >>> 0;
+        
+        const totalHosts = Math.pow(2, 32 - cidr);
+        const usableHosts = (cidr === 32) ? 0 : (cidr === 31) ? 0 : totalHosts - 2;
+
+        // Aggiorna UI
+        document.getElementById('res-ip').innerText = ipInput;
+        document.getElementById('res-mask').innerText = longToIp(maskLong);
+        document.getElementById('res-mask-bin').innerText = toBinary(maskLong);
+        
+        document.getElementById('res-net').innerText = longToIp(networkLong);
+        document.getElementById('res-net-bin').innerText = toBinary(networkLong);
+        
+        document.getElementById('res-bcast').innerText = longToIp(broadcastLong);
+        document.getElementById('res-bcast-bin').innerText = toBinary(broadcastLong);
+        
+        if (cidr >= 31) {
+            document.getElementById('res-range').innerText = "N/A";
+        } else {
+            document.getElementById('res-range').innerText = longToIp(usableStartLong) + " - " + longToIp(usableEndLong);
         }
-        const bin = parts.map(n => n.toString(2).padStart(8, '0')).join('');
-        cidr = bin.indexOf('0');
-        if (bin.slice(cidr).includes('1')) {
-          document.getElementById('subnetResult').textContent = '❌ Maschera non valida (non contigua).';
-          return;
-        }
-      }
 
-      const ipBin = ipToBinary(ip);
-      const netBin = ipBin.slice(0, cidr).padEnd(32, '0');
-      const broadcastBin = ipBin.slice(0, cidr).padEnd(32, '1');
-
-      const network = binaryToIP(netBin);
-      const broadcast = binaryToIP(broadcastBin);
-      const firstHost = binaryToIP(netBin.slice(0, 31) + '1');
-      const lastHost = binaryToIP(broadcastBin.slice(0, 31) + '0');
-      const hosts = cidr < 31 ? (2 ** (32 - cidr)) - 2 : (cidr === 31 ? 2 : 1);
-
-      const mask = cidrToMask('/' + cidr);
-
-      document.getElementById('subnetResult').textContent = 
-        `🧾 Risultati per ${ip}/${cidr}\n\n` +
-        `Maschera: ${mask}\n` +
-        `Indirizzo di rete: ${network}\n` +
-        `Broadcast: ${broadcast}\n` +
-        `Primo host: ${firstHost}\n` +
-        `Ultimo host: ${lastHost}\n` +
-        `Host disponibili: ${hosts}`;
+        document.getElementById('res-total').innerText = totalHosts.toLocaleString();
+        document.getElementById('res-usable').innerText = usableHosts.toLocaleString();
+        document.getElementById('res-wild').innerText = longToIp(wildcardLong);
+        document.getElementById('res-cidr').innerText = "/" + cidr;
+        document.getElementById('res-class').innerText = getIpClass(ipLong);
     }
 
-    function designNetwork() {
-      const n = parseInt(document.getElementById('numSubnets').value);
-      const k = parseInt(document.getElementById('hostsPerSubnet').value);
-      let result = '';
-
-      if (isNaN(n) || isNaN(k) || n <= 0 || k <= 0) {
-        document.getElementById('designResult').textContent = '❌ Inserisci valori validi.';
-        return;
-      }
-
-      const totalHosts = n * (k + 2);
-      const bitsNeeded = Math.ceil(Math.log2(k + 2));
-      const cidr = 32 - bitsNeeded;
-      const maxSubnets = 2 ** (32 - cidr);
-
-      result = 
-        `📐 Per ${n} subnet da ${k} host:\n` +
-        `CIDR consigliato: /${cidr}\n` +
-        `Host per subnet: ${2 ** (32 - cidr) - 2}\n` +
-        `Massime subnet disponibili: ${Math.floor(maxSubnets / (2 ** bitsNeeded))}`;
-
-      document.getElementById('designResult').textContent = result;
+    function resetForm() {
+        document.getElementById('ip_address').value = "10.100.0.0"; // Reset al valore della traccia 
+        document.getElementById('cidr').value = "16";
+        calculate();
     }
-  </script>
+
+    // Helpers
+    function ipToLong(ip) {
+        return ip.split('.').reduce((acc, octet) => (acc << 8) + parseInt(octet, 10), 0) >>> 0;
+    }
+
+    function longToIp(long) {
+        return [
+            (long >>> 24) & 255,
+            (long >>> 16) & 255,
+            (long >>> 8) & 255,
+            long & 255
+        ].join('.');
+    }
+
+    function toBinary(n) {
+        let bin = (n >>> 0).toString(2).padStart(32, '0');
+        return bin.match(/.{1,8}/g).join('.');
+    }
+
+    function validateIp(ip) {
+        const regex = /^(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/;
+        return regex.test(ip);
+    }
+
+    function getIpClass(ipLong) {
+        const firstOctet = (ipLong >>> 24) & 255;
+        let type = "Public";
+        // Check Private Ranges
+        // 10.0.0.0/8
+        if (firstOctet === 10) type = "Private";
+        // 172.16.0.0/12
+        else if (firstOctet === 172 && ((ipLong >>> 16) & 255) >= 16 && ((ipLong >>> 16) & 255) <= 31) type = "Private";
+        // 192.168.0.0/16
+        else if (firstOctet === 192 && ((ipLong >>> 16) & 255) === 168) type = "Private";
+        
+        let ipClass = "";
+        if (firstOctet >= 1 && firstOctet <= 126) ipClass = "Class A";
+        else if (firstOctet >= 128 && firstOctet <= 191) ipClass = "Class B";
+        else if (firstOctet >= 192 && firstOctet <= 223) ipClass = "Class C";
+        else if (firstOctet >= 224 && firstOctet <= 239) ipClass = "Class D (Multicast)";
+        else ipClass = "Class E (Reserved)";
+
+        return `${type} (${ipClass})`;
+    }
+
+    // Inizializza calcolo al caricamento
+    calculate();
+</script>
+
 </body>
 </html>
